@@ -47,6 +47,27 @@ export default function BuildPage() {
     const primaryColor = portfolioData.primaryColor;
     const secondaryColor = portfolioData.secondaryColor;
 
+    // --- NEW: SAVE TO MONGODB FUNCTION ---
+    const savePortfolio = async () => {
+        try {
+            const token = await getToken();
+            const response = await fetch("http://localhost:8080/save-portfolio", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify(portfolioData)
+            });
+            const data = await response.json();
+            alert(data.message);
+            setBackendResponse(data);
+        } catch (error) {
+            console.error("Failed to save:", error);
+            alert("Failed to save build to database. Check if your backend is running.");
+        }
+    };
+
     const testBackend = async () => {
         try {
             const token = await getToken();
@@ -169,6 +190,16 @@ export default function BuildPage() {
                                     })
                                 }
                             />
+                        </div>
+
+                        {/* --- NEW: SAVE BUILD BUTTON --- */}
+                        <div className="mt-8 px-2">
+                            <button
+                                onClick={savePortfolio}
+                                className="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg active:scale-95"
+                            >
+                                Save Build to DB
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -364,7 +395,7 @@ export default function BuildPage() {
                                                                 githubUrl: e.target.value,
                                                             })
                                                         }
-                                                   />
+                                                    />
                                                 </div>
                                                 <div className="space-y-2">
                                                     <label className="text-sm font-medium text-gray-300">Live URL</label>
