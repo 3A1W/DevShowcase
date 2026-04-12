@@ -3,6 +3,7 @@ import { useEffect} from "react";
 import Lenis from "lenis";
 
 import HomePage from "./pages/HomePage.jsx";
+import HomePage2 from "./pages/HomePage2.jsx";
 import SignInPage from "./pages/SignInPage.jsx";
 import SignUpPage from "./pages/SignUpPage.jsx";
 import BuildPage from "./pages/BuildPage.jsx";

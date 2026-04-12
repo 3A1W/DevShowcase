@@ -79,7 +79,7 @@ async def save_portfolio(
     
     # 4. Save to MongoDB Atlas
     portfolio.save()
-    
+
     return {
         "message": "Portfolio build successfully stored in MongoDB Atlas!",
         "clerk_id": clerk_id,
