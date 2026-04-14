@@ -1,13 +1,14 @@
 import { Link } from "react-router-dom";
 import { useAuth, UserButton, useUser } from "@clerk/clerk-react";
 import { dark } from "@clerk/themes";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/DevShowcaseLogo4.png";
 import templateImage from "../assets/TemplateImage.png";
 import githubLogo from "../assets/ConnectGithubImage.png";
 import urlIcon from "../assets/CleanLinkImage.png";
 import tempHeadshot from "../assets/BlankProfile.png";
+import BuilderModal from "../components/BuilderModal";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
@@ -21,17 +22,35 @@ export default function BuildPage() {
     const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
     const [editingProjectId, setEditingProjectId] = useState(null);
     const [projectInputMode, setProjectInputMode] = useState("github");
-<<<<<<< HEAD
     const [activeImageIndexes, setActiveImageIndexes] = useState({});
+
+    const [isEditingName, setIsEditingName] = useState(false);
+    const [nameInput, setNameInput] = useState("");
+    const [isEditingYear, setIsEditingYear] = useState(false);
+    const [yearInput, setYearInput] = useState("");
+    const [isEditingMajor, setIsEditingMajor] = useState(false);
+    const [majorInput, setMajorInput] = useState("");
+    const [isEditingCollege, setIsEditingCollege] = useState(false);
+    const [collegeInput, setCollegeInput] = useState("");
+    const [isEditingBio, setIsEditingBio] = useState(false);
+    const [bioInput, setBioInput] = useState("");
+    const bioTextareaRef = useRef(null);
+
+    const [isAddSectionOpen, setIsAddSectionOpen] = useState(false);
+    const [isAddSchoolOpen, setIsAddSchoolOpen] = useState(false);
+    const [schoolEntry, setSchoolEntry] = useState({
+        school: "",
+        degree: "",
+        startDate: "",
+        endDate: "",
+    });
     
-=======
     const [githubStatus, setGithubStatus] = useState({ connected: false, repository_count: 0 });
     const [githubRepositories, setGithubRepositories] = useState([]);
     const [selectedGithubRepoIds, setSelectedGithubRepoIds] = useState([]);
     const [githubLoading, setGithubLoading] = useState(false);
     const [githubError, setGithubError] = useState("");
     const [githubMessage, setGithubMessage] = useState("");
->>>>>>> master
 
     const [manualProject, setManualProject] = useState({
         title: "",
@@ -59,15 +78,25 @@ export default function BuildPage() {
         },
         projects: [],
         involvement: {
-            education: "",
+            visibleSections: [],
+            education: [],
+            skills: [],
             clubs: [],
+            workExperience: [],
             certifications: [],
-            other: "",
+            awards: [],
+            volunteer: [],
         },
     });
     const selectedTemplate = portfolioData.template;
     const primaryColor = portfolioData.primaryColor;
     const secondaryColor = portfolioData.secondaryColor;
+
+    const displayName = portfolioData.about.name.trim() || "Your Name";
+    const displayYear = portfolioData.about.year.trim() || "Year";
+    const displayMajor = portfolioData.about.major.trim() || "Major";
+    const displayCollege = portfolioData.about.college.trim() || "College";
+    const displayBio = portfolioData.about.paragraph.trim() || "Your bio goes here.";
 
     useEffect(() => {
         if (!isLoaded || !isSignedIn) {
@@ -183,7 +212,7 @@ export default function BuildPage() {
                 projects: data.portfolio?.projects || [],
             }));
             setSelectedGithubRepoIds([]);
-            setGithubMessage(`Imported ${data.imported_count || 0} repository${data.imported_count === 1 ? "" : "ies"}.`);
+            setGithubMessage(`Imported ${data.imported_count || 0} repositor${data.imported_count === 1 ? "y" : "ies"}.`);
         } catch (error) {
             console.error("Failed to import GitHub repos:", error);
             setGithubError(error.message || "Unable to import repositories.");
@@ -405,7 +434,28 @@ export default function BuildPage() {
                         {activePage === "about" && selectedTemplate === "classic" && (
                             <div className="p-0">
                                 <div className="mt-2 flex gap-2 max-w-4xl mx-auto justify-center items-center">
-                                    <div className="flex h-72 w-72 items-center justify-center rounded-full border border-gray-700 bg-[rgb(35,35,35)] text-sm text-gray-400 overflow-hidden">
+                                    <input
+                                        id="headshotUpload"
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                                setPortfolioData({
+                                                    ...portfolioData,
+                                                    about: {
+                                                        ...portfolioData.about,
+                                                        headshot: file,
+                                                    },
+                                                });
+                                            }
+                                        }}
+                                    />
+                                    <div 
+                                        onClick={() => document.getElementById("headshotUpload").click()}
+                                        className="flex h-72 w-72 cursor-pointer items-center justify-center rounded-full border border-gray-700 bg-[rgb(35,35,35)] text-sm text-gray-400 overflow-hidden"
+                                    >
                                         {portfolioData.about.headshot ? (
                                             <img
                                                 src={URL.createObjectURL(portfolioData.about.headshot)}
@@ -420,23 +470,217 @@ export default function BuildPage() {
                                         )}
                                     </div>
 
-                                    <div>
-                                        <h2 className="pl-8 pt-24 text-5xl font-bold text-white">
-                                            {portfolioData.about.name || "Your Name"}
-                                        </h2>
+                                    <div className="w-[520px]">
+                                        {isEditingName ? (
+                                            <input
+                                                type="text"
+                                                value={nameInput}
+                                                onChange={(e) => setNameInput(e.target.value)}
+                                                onBlur={() => {
+                                                    setPortfolioData({
+                                                        ...portfolioData,
+                                                        about: {
+                                                            ...portfolioData.about,
+                                                            name: nameInput,
+                                                        },
+                                                    });
+                                                    setIsEditingName(false);
+                                                }}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter") {
+                                                        setPortfolioData({
+                                                            ...portfolioData,
+                                                            about: {
+                                                                ...portfolioData.about,
+                                                                name: nameInput,
+                                                            },
+                                                        });
+                                                        setIsEditingName(false);
+                                                    }
+                                                }}
+                                                autoFocus
+                                                className="ml-8 mt-20 leading-[1.3] bg-transparent text-5xl font-bold text-white cursor-text whitespace-nowrap overflow-hidden text-ellipsis"
+                                            />
+                                        ) : (
+                                            <h2
+                                                onClick={() => {
+                                                    setNameInput(portfolioData.about.name.trim());
+                                                    setIsEditingName(true);
+                                                }}
+                                                className="ml-8 mt-20 leading-[1.3] text-5xl font-bold text-white cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis"
+                                            >
+                                                {displayName}
+                                            </h2>
+                                        )}
 
-                                        <div className="pl-9 flex gap-1 text-lg" style={{ color: secondaryColor }}>
-                                            <p className="italic">{portfolioData.about.year || "Year"}</p>
-                                            <p className="italic">{portfolioData.about.major || "Major"}</p>
+                                        <div className="w-[800px] pl-9 -mt-1 flex gap-1 text-lg" style={{ color: secondaryColor }}>
+                                            {isEditingYear ? (
+                                                <input
+                                                    type="text"
+                                                    value={yearInput}
+                                                    onChange={(e) => setYearInput(e.target.value)}
+                                                    onBlur={() => {
+                                                        setPortfolioData({
+                                                            ...portfolioData,
+                                                            about: {
+                                                                ...portfolioData.about,
+                                                                year: yearInput,
+                                                            },
+                                                        });
+                                                        setIsEditingYear(false);
+                                                    }}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === "Enter") {
+                                                            setPortfolioData({
+                                                                ...portfolioData,
+                                                                about: {
+                                                                    ...portfolioData.about,
+                                                                    year: yearInput,
+                                                                },
+                                                            });
+                                                            setIsEditingYear(false);
+                                                        }
+                                                    }}
+                                                    autoFocus
+                                                    className="w-20 bg-transparent"
+                                                />
+                                            ) : (
+                                                <p
+                                                    onClick={() => {
+                                                        setYearInput(portfolioData.about.year.trim());
+                                                        setIsEditingYear(true);
+                                                    }}
+                                                    className={portfolioData.about.year.trim() ? "cursor-pointer" : "italic cursor-pointer"}
+                                                >
+                                                    {displayYear}
+                                                </p>
+                                            )}
+                                            {isEditingMajor ? (
+                                                <input
+                                                    type="text"
+                                                    value={majorInput}
+                                                    onChange={(e) => setMajorInput(e.target.value)}
+                                                    onBlur={() => {
+                                                        setPortfolioData({
+                                                            ...portfolioData,
+                                                            about: {
+                                                                ...portfolioData.about,
+                                                                major: majorInput,
+                                                            },
+                                                        });
+                                                        setIsEditingMajor(false);
+                                                    }}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === "Enter") {
+                                                            setPortfolioData({
+                                                                ...portfolioData,
+                                                                about: {
+                                                                    ...portfolioData.about,
+                                                                    major: majorInput,
+                                                                },
+                                                            });
+                                                            setIsEditingMajor(false);
+                                                        }
+                                                    }}
+                                                    autoFocus
+                                                    className="w-32 bg-transparent"
+                                                />
+                                            ) : (
+                                                <p
+                                                    onClick={() => {
+                                                        setMajorInput(portfolioData.about.major.trim());
+                                                        setIsEditingMajor(true);
+                                                    }}
+                                                    className={portfolioData.about.major.trim() ? "cursor-pointer" : "italic cursor-pointer"}
+                                                >
+                                                    {displayMajor}
+                                                </p>
+                                            )}
                                             <p>student at</p>
-                                            <p className="italic">{portfolioData.about.college || "College"}</p>
+                                            {isEditingCollege ? (
+                                                <input
+                                                    type="text"
+                                                    value={collegeInput}
+                                                    onChange={(e) => setCollegeInput(e.target.value)}
+                                                    onBlur={() => {
+                                                        setPortfolioData({
+                                                            ...portfolioData,
+                                                            about: {
+                                                                ...portfolioData.about,
+                                                                college: collegeInput,
+                                                            },
+                                                        });
+                                                        setIsEditingCollege(false);
+                                                    }}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === "Enter") {
+                                                            setPortfolioData({
+                                                                ...portfolioData,
+                                                                about: {
+                                                                    ...portfolioData.about,
+                                                                    college: collegeInput,
+                                                                },
+                                                            });
+                                                            setIsEditingCollege(false);
+                                                        }
+                                                    }}
+                                                    autoFocus
+                                                    className="w-40 bg-transparent"
+                                                />
+                                            ) : (
+                                                <p
+                                                    onClick={() => {
+                                                        setCollegeInput(portfolioData.about.college.trim());
+                                                        setIsEditingCollege(true);
+                                                    }}
+                                                    className={portfolioData.about.college.trim() ? "cursor-pointer" : "italic cursor-pointer"}
+                                                >
+                                                    {displayCollege}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
                                 <div className="relative z-10 -mt-14 bg-[rgb(40,40,40)] p-12 border-t-6 text-gray-400 text-justify" style={{ color: primaryColor }}>
                                     <div className="max-w-5xl mx-auto">
                                         <h2 className="text-2xl font-bold text-white">About Me</h2>
-                                        <p className="mt-4 text-lg text-gray-400">{portfolioData.about.bio || "Your bio goes here."}</p>
+                                        {isEditingBio ? (
+                                            <textarea
+                                                value={bioInput}
+                                                ref={bioTextareaRef}
+                                                onChange={(e) => {
+                                                    setBioInput(e.target.value);
+                                                    e.target.style.height = "auto";
+                                                    e.target.style.height = `${e.target.scrollHeight}px`;
+                                                }}
+                                                onFocus={(e) => {
+                                                    e.target.style.height = "auto";
+                                                    e.target.style.height = `${e.target.scrollHeight}px`;
+                                                }}
+                                                onBlur={() => {
+                                                    setPortfolioData({
+                                                        ...portfolioData,
+                                                        about: {
+                                                            ...portfolioData.about,
+                                                            paragraph: bioInput,
+                                                        },
+                                                    });
+                                                    setIsEditingBio(false);
+                                                }}
+                                                autoFocus
+                                                className="mt-4 w-full resize-none bg-transparent text-lg text-gray-400 outline-none"
+                                            />
+                                        ) : (
+                                            <p
+                                                onClick={() => {
+                                                    setBioInput(portfolioData.about.paragraph.trim());
+                                                    setIsEditingBio(true);
+                                                }}
+                                                className={`mt-4 text-lg cursor-pointer whitespace-pre-line ${portfolioData.about.paragraph.trim() ? "text-gray-400" : "italic text-gray-500"}`}
+                                            >
+                                                {displayBio}
+                                            </p>
+                                        )}
                                         {portfolioData.about.resume && (
                                             <div className="mt-8">
                                                 <iframe
@@ -480,7 +724,7 @@ export default function BuildPage() {
                                                     });
                                                 }
                                             }}
-                                            className="flex mt-6 min-h-32 w-full mx-auto items-center justify-center rounded-2xl border-2 border-dashed border-gray-600 bg-[rgb(35,35,35)] p-6 text-center text-gray-400"
+                                            className="flex mt-6 cursor-pointer min-h-32 w-full mx-auto items-center justify-center rounded-2xl border-2 border-dashed border-gray-600 bg-[rgb(35,35,35)] p-6 text-center text-gray-400"
                                         >
                                             {portfolioData.about.resume
                                                 ? portfolioData.about.resume.name
@@ -715,11 +959,9 @@ export default function BuildPage() {
                                     <div className="pt-4 border-t border-gray-700">
                                         {projectInputMode === "github" ? (
                                             <div className="space-y-3">
-<<<<<<< HEAD
                                                 <div className="rounded-xl border border-gray-700 p-4 text-gray-400">
                                                     Connected repositories will go here
                                                 </div>
-=======
                                                 <h2 className="text-lg font-semibold text-white">Import a repository</h2>
                                                 {!githubStatus.connected ? (
                                                     <div className="space-y-3 rounded-xl border border-gray-700 p-4 text-gray-300">
@@ -799,7 +1041,6 @@ export default function BuildPage() {
                                                         </div>
                                                     </div>
                                                 )}
->>>>>>> master
                                             </div>
                                         ) : (
                                             <div className="space-y-3">
@@ -1003,8 +1244,194 @@ export default function BuildPage() {
                         )}
 
                         {activePage === "involvement" && selectedTemplate === "classic" && (
-                            <div className="p-8">
-                                <h1 className="text-2xl font-bold text-white">Involvement</h1>
+                            <div className="px-8 -mt-12">
+                                <button 
+                                    onClick={() => setIsAddSectionOpen(true)}
+                                    className="relative z-30 inline-block rounded-xl border border-cyan-600 bg-[rgb(35,35,35)] px-4 py-2 font-semibold text-white transition hover:bg-[rgb(45,45,45)]"
+                                >
+                                    + Add Section
+                                </button>
+                                {isAddSectionOpen && (
+                                    <div className="mt-3 w-56 rounded-2xl border border-gray-700 bg-[rgb(25,25,25)] p-2 shadow-xl">
+                                        <button
+                                            onClick={() => {
+                                                if (!portfolioData.involvement.visibleSections.includes("education")) {
+                                                    setPortfolioData({
+                                                        ...portfolioData,
+                                                        involvement: {
+                                                            ...portfolioData.involvement,
+                                                            visibleSections: [...portfolioData.involvement.visibleSections, "education"],
+                                                        },
+                                                    });
+                                                }
+                                                setIsAddSectionOpen(false);
+                                            }}
+                                            className="block w-full rounded-xl px-3 py-2 text-left text-white hover:bg-[rgb(40,40,40)]"
+                                        >
+                                            Education
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                if (!portfolioData.involvement.visibleSections.includes("skills")) {
+                                                    setPortfolioData({
+                                                        ...portfolioData,
+                                                        involvement: {
+                                                            ...portfolioData.involvement,
+                                                            visibleSections: [...portfolioData.involvement.visibleSections, "skills"],
+                                                        },
+                                                    });
+                                                }
+                                                setIsAddSectionOpen(false);
+                                            }}
+                                            className="block w-full rounded-xl px-3 py-2 text-left text-white hover:bg-[rgb(40,40,40)]"
+                                        >
+                                            Skills
+                                        </button>
+                                        <button className="block w-full rounded-xl px-3 py-2 text-left text-white hover:bg-[rgb(40,40,40)]">
+                                            Clubs
+                                        </button>
+                                        <button className="block w-full rounded-xl px-3 py-2 text-left text-white hover:bg-[rgb(40,40,40)]">
+                                            Work Experience
+                                        </button>
+                                    </div>
+                                )}
+                                {portfolioData.involvement.visibleSections.includes("education") && (
+                                    <div className="mt-6 rounded-2xl border border-gray-700 bg-[rgb(35,35,35)] p-6">
+                                        <div className="flex items-center justify-between">
+                                            <h2 className="text-2xl font-bold text-white">Education</h2>
+                                            <button
+                                                onClick={() =>
+                                                    setPortfolioData({
+                                                        ...portfolioData,
+                                                        involvement: {
+                                                            ...portfolioData.involvement,
+                                                            visibleSections: portfolioData.involvement.visibleSections.filter(
+                                                                (section) => section !== "education"
+                                                            ),
+                                                        },
+                                                    })
+                                                }
+                                                className="rounded-lg border border-red-400/20 bg-red-500/10 px-3 py-1 text-sm text-red-300 hover:bg-red-500/20"
+                                            >
+                                                Remove
+                                            </button>
+                                        </div>
+                                        <div className="mt-4">
+                                            <button
+                                                onClick={() => {
+                                                    setSchoolEntry({
+                                                        school: "",
+                                                        degree: "",
+                                                        startDate: "",
+                                                        endDate: "",
+                                                    });
+                                                    setIsAddSchoolOpen(true);
+                                                }}
+                                                className="rounded-xl border border-cyan-600 bg-[rgb(25,25,25)] px-4 py-2 font-semibold text-white transition hover:bg-[rgb(45,45,45)]"
+                                            >
+                                                + Add School
+                                            </button>
+                                        </div>
+                                        <div className="mt-4 space-y-3">
+                                            {portfolioData.involvement.education.map((entry) => (
+                                                <div
+                                                    key={entry.id}
+                                                    className="rounded-xl border border-gray-700 bg-[rgb(25,25,25)] p-4"
+                                                >
+                                                    <p className="font-semibold text-white">{entry.school || "Untitled School"}</p>
+                                                    <p className="text-gray-400">{entry.degree || ""}</p>
+                                                    <p className="text-sm text-gray-500">
+                                                        {entry.startDate || "Start"} - {entry.endDate || "End"}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        {isAddSchoolOpen && (
+                                            <BuilderModal 
+                                                title="Add School" 
+                                                onClose={() => setIsAddSchoolOpen(false)}
+                                                onSave={() => {
+                                                    setPortfolioData({
+                                                        ...portfolioData,
+                                                        involvement: {
+                                                            ...portfolioData.involvement,
+                                                            education: [
+                                                                ...portfolioData.involvement.education,
+                                                                {
+                                                                    id: crypto.randomUUID(),
+                                                                    ...schoolEntry,
+                                                                },
+                                                            ],
+                                                        },
+                                                    });
+                                                    setIsAddSchoolOpen(false);
+                                                }}
+                                                saveLabel="Save School"
+                                            >
+                                                <div className="space-y-3">
+                                                    <div className="space-y-2">
+                                                        <label className="text-sm font-medium text-gray-300">School</label>
+                                                        <input
+                                                            type="text"
+                                                            value={schoolEntry.school}
+                                                            onChange={(e) =>
+                                                                setSchoolEntry({
+                                                                    ...schoolEntry,
+                                                                    school: e.target.value,
+                                                                })
+                                                            }
+                                                            className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white outline-none"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <label className="text-sm font-medium text-gray-300">Degree / Program</label>
+                                                        <input
+                                                            type="text"
+                                                            value={schoolEntry.degree}
+                                                            onChange={(e) =>
+                                                                setSchoolEntry({
+                                                                    ...schoolEntry,
+                                                                    degree: e.target.value,
+                                                                })
+                                                            }
+                                                            className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white outline-none"
+                                                        />
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div className="space-y-2">
+                                                            <label className="text-sm font-medium text-gray-300">Start Date</label>
+                                                            <input
+                                                                type="text"
+                                                                value={schoolEntry.startDate}
+                                                                onChange={(e) =>
+                                                                    setSchoolEntry({
+                                                                        ...schoolEntry,
+                                                                        startDate: e.target.value,
+                                                                    })
+                                                                }
+                                                                className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white outline-none"
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <label className="text-sm font-medium text-gray-300">End Date</label>
+                                                            <input
+                                                                type="text"
+                                                                value={schoolEntry.endDate}
+                                                                onChange={(e) =>
+                                                                    setSchoolEntry({
+                                                                        ...schoolEntry,
+                                                                        endDate: e.target.value,
+                                                                    })
+                                                                }
+                                                                className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white outline-none"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </BuilderModal>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         )}
 
