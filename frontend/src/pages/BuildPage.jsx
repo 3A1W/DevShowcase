@@ -44,6 +44,48 @@ export default function BuildPage() {
         startDate: "",
         endDate: "",
     });
+    const [isAddWorkExperienceOpen, setIsAddWorkExperienceOpen] = useState(false);
+    const [workExperienceEntry, setWorkExperienceEntry] = useState({
+        company: "",
+        role: "",
+        startDate: "",
+        endDate: "",
+        description: "",
+    });
+    const [isAddClubOpen, setIsAddClubOpen] = useState(false);
+    const [clubEntry, setClubEntry] = useState({
+        club: "",
+        role: "",
+        startDate: "",
+        endDate: "",
+        description: "",
+    });
+    const [isAddSkillOpen, setIsAddSkillOpen] = useState(false);
+    const [skillEntry, setSkillEntry] = useState({
+        name: "",
+    });
+    const [isAddVolunteerOpen, setIsAddVolunteerOpen] = useState(false);
+    const [volunteerEntry, setVolunteerEntry] = useState({
+        organization: "",
+        role: "",
+        startDate: "",
+        endDate: "",
+        description: "",
+    });
+    const [isAddAwardOpen, setIsAddAwardOpen] = useState(false);
+    const [awardEntry, setAwardEntry] = useState({
+        title: "",
+        issuer: "",
+        date: "",
+        description: "",
+    });
+    const [isAddCertificationOpen, setIsAddCertificationOpen] = useState(false);
+    const [certificationEntry, setCertificationEntry] = useState({
+        name: "",
+        issuer: "",
+        date: "",
+        credentialLink: "",
+    });
     
     const [githubStatus, setGithubStatus] = useState({ connected: false, repository_count: 0 });
     const [githubRepositories, setGithubRepositories] = useState([]);
@@ -88,6 +130,566 @@ export default function BuildPage() {
             volunteer: [],
         },
     });
+
+    const sectionPriority = {
+        workExperience: 4,
+        clubs: 3,
+        skills: 1,
+        education: 2,
+        awards: 1,
+        certifications: 1,
+        volunteer: 2,
+    };
+    const sortedVisibleSections = [...portfolioData.involvement.visibleSections].sort(
+        (a, b) => (sectionPriority[b] || 0) - (sectionPriority[a] || 0)
+    );
+    const getLayoutClasses = () => {
+        const count = sortedVisibleSections.length;
+
+        if (count === 1) return ["col-span-12"];
+        if (count === 2) return ["col-span-6", "col-span-6"];
+        if (count === 3) return ["col-span-8", "col-span-4", "col-span-12"];
+        if (count === 4) return ["col-span-8", "col-span-4", "col-span-6", "col-span-6"];
+        if (count === 5) return ["col-span-8", "col-span-4", "col-span-6", "col-span-6", "col-span-12"];
+        if (count === 6) return ["col-span-8", "col-span-4", "col-span-6", "col-span-6", "col-span-6", "col-span-6"];
+        if (count === 7) return ["col-span-8", "col-span-4", "col-span-6", "col-span-6", "col-span-4", "col-span-4", "col-span-4"];
+
+        return [];
+    };
+    const layoutClasses = getLayoutClasses();
+    const removeSection = (sectionToRemove) => {
+        setPortfolioData({
+            ...portfolioData,
+            involvement: {
+                ...portfolioData.involvement,
+                visibleSections: portfolioData.involvement.visibleSections.filter(
+                    (section) => section !== sectionToRemove
+                ),
+            },
+        });
+    };
+    const renderSectionCard = (section, index) => {
+        const layoutClass = layoutClasses[index] || "col-span-6";
+        if (section === "education") {
+            return (
+                <div key={section} className={`${layoutClass} group rounded-2xl border bg-[rgb(35,35,35)] p-6`} style={{ borderColor: portfolioData.primaryColor }}>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <h2 className="text-2xl font-bold text-white">Education</h2>
+                            <button
+                                onClick={() => {
+                                    setSchoolEntry({
+                                        school: "",
+                                        degree: "",
+                                        startDate: "",
+                                        endDate: "",
+                                    });
+                                    setIsAddSchoolOpen(true);
+                                }}
+                                className="cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-xl border border-cyan-600 bg-[rgb(25,25,25)] px-4 py-2 font-semibold text-white transition hover:bg-[rgb(45,45,45)]"
+                            >
+                                + Add School
+                            </button>
+                        </div>
+                        <button
+                            onClick={() => removeSection("education")}
+                            className="cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-lg border border-red-400/20 bg-red-500/10 px-3 py-1 text-sm text-red-300 hover:bg-red-500/20"
+                        >
+                            Remove
+                        </button>
+                    </div>
+                    <div className="mt-4 space-y-3">
+                        {portfolioData.involvement.education.map((entry) => (
+                            <div key={entry.id} className="group flex items-start justify-between gap-4 rounded-xl border bg-[rgb(25,25,25)] p-4" style={{ borderColor: `${portfolioData.secondaryColor}70` }}>
+                                <div className="flex-1">
+                                    <p className="font-semibold text-white">
+                                        {entry.school || "Untitled School"}
+                                    </p>
+                                    <p className="text-gray-400">
+                                        {entry.degree || ""}
+                                    </p>
+                                    <p className="text-sm text-gray-500">
+                                        {entry.startDate || "Start"} - {entry.endDate || "End"}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() =>
+                                        setPortfolioData({
+                                            ...portfolioData,
+                                            involvement: {
+                                                ...portfolioData.involvement,
+                                                education: portfolioData.involvement.education.filter(
+                                                    (school) => school.id !== entry.id
+                                                ),
+                                            },
+                                        })
+                                    }
+                                    className="cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-lg border border-red-400/20 bg-red-500/10 px-3 py-1 text-sm text-red-300 hover:bg-red-500/20"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        if (section === "skills") {
+            return (
+                <div key={section} className={`${layoutClass} group rounded-2xl border bg-[rgb(35,35,35)] p-6`} style={{ borderColor: portfolioData.primaryColor }}>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <h2 className="text-2xl font-bold text-white">Skills</h2>
+                            <button
+                                onClick={() => {
+                                    setSkillEntry({ name: "" });
+                                    setIsAddSkillOpen(true);
+                                }}
+                                className="cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-xl border border-cyan-600 bg-[rgb(25,25,25)] px-4 py-2 font-semibold text-white transition hover:bg-[rgb(45,45,45)]"
+                            >
+                                + Add Skill
+                            </button>
+                        </div>
+                        <button
+                            onClick={() => removeSection("skills")}
+                            className="cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-lg border border-red-400/20 bg-red-500/10 px-3 py-1 text-sm text-red-300 hover:bg-red-500/20"
+                        >
+                            Remove
+                        </button>
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-3">
+                        {portfolioData.involvement.skills.map((skill) => (
+                            <div
+                                key={skill.id}
+                                className="flex items-center gap-2 rounded-full border border-white/10 bg-[rgb(25,25,25)] px-4 py-2"
+                            >
+                                <span className="text-sm font-medium" style={{ color: portfolioData.secondaryColor }}>
+                                    {skill.name || "Untitled Skill"}
+                                </span>
+                                <button
+                                    onClick={() =>
+                                        setPortfolioData({
+                                            ...portfolioData,
+                                            involvement: {
+                                                ...portfolioData.involvement,
+                                                skills: portfolioData.involvement.skills.filter(
+                                                    (currentSkill) => currentSkill.id !== skill.id
+                                                ),
+                                            },
+                                        })
+                                    }
+                                    className="text-sm text-red-300 hover:text-red-200"
+                                >
+                                    ×
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        if (section === "clubs") {
+            return (
+                <div key={section} className={`${layoutClass} group rounded-2xl border bg-[rgb(35,35,35)] p-6`} style={{ borderColor: portfolioData.primaryColor }}>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <h2 className="text-2xl font-bold text-white">Clubs</h2>
+                            <button
+                                onClick={() => {
+                                    setClubEntry({
+                                        club: "",
+                                        role: "",
+                                        startDate: "",
+                                        endDate: "",
+                                        description: "",
+                                    });
+                                    setIsAddClubOpen(true);
+                                }}
+                                className="cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-xl border border-cyan-600 bg-[rgb(25,25,25)] px-4 py-2 font-semibold text-white transition hover:bg-[rgb(45,45,45)]"
+                            >
+                                + Add Club
+                            </button>
+                        </div>
+                        <button
+                            onClick={() => removeSection("clubs")}
+                            className="cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-lg border border-red-400/20 bg-red-500/10 px-3 py-1 text-sm text-red-300 hover:bg-red-500/20"
+                        >
+                            Remove
+                        </button>
+                    </div>
+
+                    <div className="mt-4 space-y-4">
+                        {portfolioData.involvement.clubs.map((entry) => (
+                            <div
+                                key={entry.id}
+                                className="group flex items-start justify-between gap-4 rounded-xl border bg-[rgb(25,25,25)] p-4"
+                                style={{ borderColor: `${portfolioData.secondaryColor}70` }}
+                            >
+                                <div className="flex-1">
+                                    <p className="font-semibold text-white">
+                                        {entry.role || "Untitled Role"}
+                                    </p>
+                                    <p className="text-gray-400">
+                                        {entry.club || "Untitled Club"}
+                                    </p>
+                                    <p className="text-sm text-gray-500">
+                                        {entry.startDate || "Start"} - {entry.endDate || "End"}
+                                    </p>
+                                    {entry.description && (
+                                        <p className="mt-3 whitespace-pre-line text-sm leading-6 text-gray-400">
+                                            {entry.description}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <button
+                                    onClick={() =>
+                                        setPortfolioData({
+                                            ...portfolioData,
+                                            involvement: {
+                                                ...portfolioData.involvement,
+                                                clubs: portfolioData.involvement.clubs.filter(
+                                                    (club) => club.id !== entry.id
+                                                ),
+                                            },
+                                        })
+                                    }
+                                    className="cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-lg border border-red-400/20 bg-red-500/10 px-3 py-1 text-sm text-red-300 hover:bg-red-500/20"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        if (section === "workExperience") {
+            return (
+                <div key={section} className={`${layoutClass} group rounded-2xl border border-gray-700 bg-[rgb(35,35,35)] p-6`} style={{ borderColor: portfolioData.primaryColor }}>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <h2 className="text-2xl font-bold text-white">Work Experience</h2>
+                            <button
+                                onClick={() => {
+                                    setWorkExperienceEntry({
+                                        company: "",
+                                        role: "",
+                                        startDate: "",
+                                        endDate: "",
+                                        description: "",
+                                    });
+                                    setIsAddWorkExperienceOpen(true);
+                                }}
+                                className="cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-xl border border-cyan-600 bg-[rgb(25,25,25)] px-4 py-2 font-semibold text-white transition hover:bg-[rgb(45,45,45)]"
+                            >
+                                + Add Work
+                            </button>
+                        </div>
+                        <button
+                            onClick={() => removeSection("workExperience")}
+                            className="cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-lg border border-red-400/20 bg-red-500/10 px-3 py-1 text-sm text-red-300 hover:bg-red-500/20"
+                        >
+                            Remove
+                        </button>
+                    </div>
+                    <div className="mt-4 space-y-4">
+                        {portfolioData.involvement.workExperience.map((entry) => (
+                            <div
+                                key={entry.id}
+                                className="group flex items-start justify-between gap-4 rounded-xl border bg-[rgb(25,25,25)] p-4"
+                                style={{ borderColor: `${portfolioData.secondaryColor}70` }}
+                            >
+                                <div className="flex-1">
+                                    <p className="font-semibold text-white">
+                                        {entry.role || "Untitled Role"}
+                                    </p>
+                                    <p className="text-gray-400">
+                                        {entry.company || "Untitled Company"}
+                                    </p>
+                                    <p className="text-sm text-gray-500">
+                                        {entry.startDate || "Start"} - {entry.endDate || "End"}
+                                    </p>
+                                    {entry.description && (
+                                        <p className="mt-3 whitespace-pre-line text-sm leading-6 text-gray-400">
+                                            {entry.description}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <button
+                                    onClick={() =>
+                                        setPortfolioData({
+                                            ...portfolioData,
+                                            involvement: {
+                                                ...portfolioData.involvement,
+                                                workExperience: portfolioData.involvement.workExperience.filter(
+                                                    (work) => work.id !== entry.id
+                                                ),
+                                            },
+                                        })
+                                    }
+                                    className="cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-lg border border-red-400/20 bg-red-500/10 px-3 py-1 text-sm text-red-300 hover:bg-red-500/20"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        if (section === "awards") {
+            return (
+                <div key={section} className={`${layoutClass} group rounded-2xl border bg-[rgb(35,35,35)] p-6`} style={{ borderColor: portfolioData.primaryColor }}>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <h2 className="text-2xl font-bold text-white">Awards</h2>
+                            <button
+                                onClick={() => {
+                                    setAwardEntry({
+                                        title: "",
+                                        issuer: "",
+                                        date: "",
+                                        description: "",
+                                    });
+                                    setIsAddAwardOpen(true);
+                                }}
+                                className="cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-xl border border-cyan-600 bg-[rgb(25,25,25)] px-4 py-2 font-semibold text-white hover:bg-[rgb(45,45,45)]"
+                            >
+                                + Add Award
+                            </button>
+                        </div>
+
+                        <button
+                            onClick={() => removeSection("awards")}
+                            className="cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-lg border border-red-400/20 bg-red-500/10 px-3 py-1 text-sm text-red-300 hover:bg-red-500/20"
+                        >
+                            Remove
+                        </button>
+                    </div>
+
+                    <div className="mt-4 space-y-4">
+                        {portfolioData.involvement.awards.map((entry, entryIndex) => (
+                            <div key={entry.id}>
+                                <div className="group flex items-start justify-between gap-4">
+                                    <div className="flex-1">
+                                        <p className="font-semibold text-white">
+                                            {entry.title || "Untitled Award"}
+                                        </p>
+                                        <p className="text-gray-400">
+                                            {entry.issuer || "Unknown Issuer"}
+                                        </p>
+                                        <p className="text-sm text-gray-500">
+                                            {entry.date || "No Date"}
+                                        </p>
+                                        {entry.description && (
+                                            <p className="mt-2 whitespace-pre-line text-sm leading-6 text-gray-400">
+                                                {entry.description}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    <button
+                                        onClick={() =>
+                                            setPortfolioData({
+                                                ...portfolioData,
+                                                involvement: {
+                                                    ...portfolioData.involvement,
+                                                    awards: portfolioData.involvement.awards.filter(
+                                                        (award) => award.id !== entry.id
+                                                    ),
+                                                },
+                                            })
+                                        }
+                                        className="cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-lg border border-red-400/20 bg-red-500/10 px-3 py-1 text-sm text-red-300 hover:bg-red-500/20"
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+
+                                {entryIndex !== portfolioData.involvement.awards.length - 1 && (
+                                    <div className="mt-4 border-t" style={{ borderColor: `${portfolioData.secondaryColor}70` }}></div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        if (section === "certifications") {
+            return (
+                <div key={section} className={`${layoutClass} group rounded-2xl border bg-[rgb(35,35,35)] p-6`} style={{ borderColor: portfolioData.primaryColor }}>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <h2 className="text-2xl font-bold text-white">Certifications</h2>
+                            <button
+                                onClick={() => {
+                                    setCertificationEntry({
+                                        name: "",
+                                        issuer: "",
+                                        date: "",
+                                        credentialLink: "",
+                                    });
+                                    setIsAddCertificationOpen(true);
+                                }}
+                                className="cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-xl border border-cyan-600 bg-[rgb(25,25,25)] px-4 py-2 font-semibold text-white hover:bg-[rgb(45,45,45)]"
+                            >
+                                + Add
+                            </button>
+                        </div>
+
+                        <button
+                            onClick={() => removeSection("certifications")}
+                            className="cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-lg border border-red-400/20 bg-red-500/10 px-3 py-1 text-sm text-red-300 hover:bg-red-500/20"
+                        >
+                            Remove
+                        </button>
+                    </div>
+
+                    <div className="mt-4 space-y-4">
+                        {portfolioData.involvement.certifications.map((entry, entryIndex) => (
+                            <div key={entry.id}>
+                                <div className="group flex items-start justify-between gap-4">
+                                    <div className="flex-1">
+                                        <p className="font-semibold text-white">
+                                            {entry.name || "Untitled Certification"}
+                                        </p>
+                                        <p className="text-gray-400">
+                                            {entry.issuer || "Unknown Issuer"}
+                                        </p>
+                                        <p className="text-sm text-gray-500">
+                                            {entry.date || "No Date"}
+                                        </p>
+
+                                        {entry.credentialLink && (
+                                            <a
+                                                href={entry.credentialLink}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="mt-2 inline-block text-sm hover:opacity-80 transition-opacity duration-200"
+                                                style={{ color: portfolioData.secondaryColor }}
+                                            >
+                                                View Credential
+                                            </a>
+                                        )}
+                                    </div>
+
+                                    <button
+                                        onClick={() =>
+                                            setPortfolioData({
+                                                ...portfolioData,
+                                                involvement: {
+                                                    ...portfolioData.involvement,
+                                                    certifications: portfolioData.involvement.certifications.filter(
+                                                        (certification) => certification.id !== entry.id
+                                                    ),
+                                                },
+                                            })
+                                        }
+                                        className="cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-lg border border-red-400/20 bg-red-500/10 px-3 py-1 text-sm text-red-300 hover:bg-red-500/20"
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+
+                                {entryIndex !== portfolioData.involvement.certifications.length - 1 && (
+                                    <div className="mt-4 border-t" style={{ borderColor: `${portfolioData.secondaryColor}70` }}></div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        if (section === "volunteer") {
+            return (
+                <div key={section} className={`${layoutClass} group rounded-2xl border border-gray-700 bg-[rgb(35,35,35)] p-6`} style={{ borderColor: portfolioData.primaryColor }}>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <h2 className="text-2xl font-bold text-white">Volunteer</h2>
+                            <button
+                                onClick={() => {
+                                    setVolunteerEntry({
+                                        organization: "",
+                                        role: "",
+                                        startDate: "",
+                                        endDate: "",
+                                        description: "",
+                                    });
+                                    setIsAddVolunteerOpen(true);
+                                }}
+                                className="cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-xl border border-cyan-600 bg-[rgb(25,25,25)] px-4 py-2 font-semibold text-white hover:bg-[rgb(45,45,45)]"
+                            >
+                                + Add Volunteer
+                            </button>
+                        </div>
+
+                        <button
+                            onClick={() => removeSection("volunteer")}
+                            className="cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-lg border border-red-400/20 bg-red-500/10 px-3 py-1 text-sm text-red-300 hover:bg-red-500/20"
+                        >
+                            Remove
+                        </button>
+                    </div>
+
+                    <div className="mt-4 space-y-4">
+                        {portfolioData.involvement.volunteer.map((entry) => (
+                            <div
+                                key={entry.id}
+                                className="group flex items-start justify-between gap-4 rounded-xl border bg-[rgb(25,25,25)] p-4"
+                                style={{ borderColor: `${portfolioData.secondaryColor}70` }}
+
+                            >
+                                <div className="flex-1">
+                                    <p className="font-semibold text-white">
+                                        {entry.role || "Untitled Role"}
+                                    </p>
+                                    <p className="text-gray-400">
+                                        {entry.organization || "Untitled Organization"}
+                                    </p>
+                                    <p className="text-sm text-gray-500">
+                                        {entry.startDate || "Start"} - {entry.endDate || "End"}
+                                    </p>
+                                    {entry.description && (
+                                        <p className="mt-3 whitespace-pre-line text-sm leading-6 text-gray-400">
+                                            {entry.description}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <button
+                                    onClick={() =>
+                                        setPortfolioData({
+                                            ...portfolioData,
+                                            involvement: {
+                                                ...portfolioData.involvement,
+                                                volunteer: portfolioData.involvement.volunteer.filter(
+                                                    (volunteer) => volunteer.id !== entry.id
+                                                ),
+                                            },
+                                        })
+                                    }
+                                    className="cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-lg border border-red-400/20 bg-red-500/10 px-3 py-1 text-sm text-red-300 hover:bg-red-500/20"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        return null;
+    };
+
     const selectedTemplate = portfolioData.template;
     const primaryColor = portfolioData.primaryColor;
     const secondaryColor = portfolioData.secondaryColor;
@@ -738,6 +1340,28 @@ export default function BuildPage() {
 
                         {activePage === "projects" && selectedTemplate === "classic" && (
                             <div className="p-0">
+                                <div className="px-8 -mt-12">
+                                    <button
+                                        onClick={() => {
+                                            setEditingProjectId(null);
+                                            setProjectInputMode("github");
+                                            setManualProject({
+                                                title: "",
+                                                description: "",
+                                                githubUrl: "",
+                                                liveUrl: "",
+                                                technologies: "",
+                                                mediaType: "youtube",
+                                                youtubeUrl: "",
+                                                images: [],
+                                            });
+                                            setIsAddProjectOpen(true);
+                                        }}
+                                        className="relative z-30 inline-block cursor-pointer rounded-xl border border-cyan-600 bg-[rgb(35,35,35)] px-4 py-2 font-semibold text-white transition hover:bg-[rgb(45,45,45)]"
+                                    >
+                                        + Add Project
+                                    </button>
+                                </div>
                                 <div className="mt-6">
                                     {portfolioData.projects.map((project, index) => {
                                         const hasMedia = (project.mediaType === "images" && project.images?.length > 0) || (project.mediaType === "youtube" && project.youtubeUrl);
@@ -888,17 +1512,6 @@ export default function BuildPage() {
                                             </div>
                                         );
                                     })}
-                                    <button
-                                        onClick={() => {
-                                            setEditingProjectId(null);
-                                            setIsAddProjectOpen(true);
-                                        }}
-                                        className={`w-full text-xl p-8 cursor-pointer ${
-                                            portfolioData.projects.length % 2 === 1 ? "bg-[rgb(40,40,40)] border-none" : "bg-[rgb(25,25,25)] border-b border-gray-700"
-                                        }`}
-                                    >
-                                        + Add Project
-                                    </button>
                                 </div>
                             </div>
                         )}
@@ -1245,192 +1858,813 @@ export default function BuildPage() {
 
                         {activePage === "involvement" && selectedTemplate === "classic" && (
                             <div className="px-8 -mt-12">
-                                <button 
-                                    onClick={() => setIsAddSectionOpen(true)}
-                                    className="relative z-30 inline-block rounded-xl border border-cyan-600 bg-[rgb(35,35,35)] px-4 py-2 font-semibold text-white transition hover:bg-[rgb(45,45,45)]"
-                                >
-                                    + Add Section
-                                </button>
-                                {isAddSectionOpen && (
-                                    <div className="mt-3 w-56 rounded-2xl border border-gray-700 bg-[rgb(25,25,25)] p-2 shadow-xl">
-                                        <button
-                                            onClick={() => {
-                                                if (!portfolioData.involvement.visibleSections.includes("education")) {
-                                                    setPortfolioData({
-                                                        ...portfolioData,
-                                                        involvement: {
-                                                            ...portfolioData.involvement,
-                                                            visibleSections: [...portfolioData.involvement.visibleSections, "education"],
-                                                        },
-                                                    });
-                                                }
-                                                setIsAddSectionOpen(false);
-                                            }}
-                                            className="block w-full rounded-xl px-3 py-2 text-left text-white hover:bg-[rgb(40,40,40)]"
-                                        >
-                                            Education
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                if (!portfolioData.involvement.visibleSections.includes("skills")) {
-                                                    setPortfolioData({
-                                                        ...portfolioData,
-                                                        involvement: {
-                                                            ...portfolioData.involvement,
-                                                            visibleSections: [...portfolioData.involvement.visibleSections, "skills"],
-                                                        },
-                                                    });
-                                                }
-                                                setIsAddSectionOpen(false);
-                                            }}
-                                            className="block w-full rounded-xl px-3 py-2 text-left text-white hover:bg-[rgb(40,40,40)]"
-                                        >
-                                            Skills
-                                        </button>
-                                        <button className="block w-full rounded-xl px-3 py-2 text-left text-white hover:bg-[rgb(40,40,40)]">
-                                            Clubs
-                                        </button>
-                                        <button className="block w-full rounded-xl px-3 py-2 text-left text-white hover:bg-[rgb(40,40,40)]">
-                                            Work Experience
-                                        </button>
-                                    </div>
-                                )}
-                                {portfolioData.involvement.visibleSections.includes("education") && (
-                                    <div className="mt-6 rounded-2xl border border-gray-700 bg-[rgb(35,35,35)] p-6">
-                                        <div className="flex items-center justify-between">
-                                            <h2 className="text-2xl font-bold text-white">Education</h2>
-                                            <button
-                                                onClick={() =>
-                                                    setPortfolioData({
-                                                        ...portfolioData,
-                                                        involvement: {
-                                                            ...portfolioData.involvement,
-                                                            visibleSections: portfolioData.involvement.visibleSections.filter(
-                                                                (section) => section !== "education"
-                                                            ),
-                                                        },
-                                                    })
-                                                }
-                                                className="rounded-lg border border-red-400/20 bg-red-500/10 px-3 py-1 text-sm text-red-300 hover:bg-red-500/20"
-                                            >
-                                                Remove
-                                            </button>
-                                        </div>
-                                        <div className="mt-4">
+                                <div className="relative z-30 inline-block">
+                                    <button 
+                                        onClick={() => setIsAddSectionOpen((prev) => !prev)}
+                                        className="cursor-pointer rounded-xl border border-cyan-600 bg-[rgb(35,35,35)] px-4 py-2 font-semibold text-white transition hover:bg-[rgb(45,45,45)]"
+                                    >
+                                        + Add Section
+                                    </button>
+                                    {isAddSectionOpen && (
+                                        <div className="absolute left-0 top-full mt-3 w-40 rounded-2xl border border-gray-700 bg-[rgb(25,25,25)] p-2 shadow-xl">
                                             <button
                                                 onClick={() => {
-                                                    setSchoolEntry({
-                                                        school: "",
-                                                        degree: "",
-                                                        startDate: "",
-                                                        endDate: "",
-                                                    });
-                                                    setIsAddSchoolOpen(true);
+                                                    if (!portfolioData.involvement.visibleSections.includes("education")) {
+                                                        setPortfolioData({
+                                                            ...portfolioData,
+                                                            involvement: {
+                                                                ...portfolioData.involvement,
+                                                                visibleSections: [...portfolioData.involvement.visibleSections, "education"],
+                                                            },
+                                                        });
+                                                    }
+                                                    setIsAddSectionOpen(false);
                                                 }}
-                                                className="rounded-xl border border-cyan-600 bg-[rgb(25,25,25)] px-4 py-2 font-semibold text-white transition hover:bg-[rgb(45,45,45)]"
+                                                className="cursor-pointer block w-full rounded-xl px-3 py-2 text-left text-white hover:bg-[rgb(40,40,40)]"
                                             >
-                                                + Add School
+                                                Education
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    if (!portfolioData.involvement.visibleSections.includes("skills")) {
+                                                        setPortfolioData({
+                                                            ...portfolioData,
+                                                            involvement: {
+                                                                ...portfolioData.involvement,
+                                                                visibleSections: [...portfolioData.involvement.visibleSections, "skills"],
+                                                            },
+                                                        });
+                                                    }
+                                                    setIsAddSectionOpen(false);
+                                                }}
+                                                className="cursor-pointer block w-full rounded-xl px-3 py-2 text-left text-white hover:bg-[rgb(40,40,40)]"
+                                            >
+                                                Skills
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    if (!portfolioData.involvement.visibleSections.includes("clubs")) {
+                                                        setPortfolioData({
+                                                            ...portfolioData,
+                                                            involvement: {
+                                                                ...portfolioData.involvement,
+                                                                visibleSections: [...portfolioData.involvement.visibleSections, "clubs"],
+                                                            },
+                                                        });
+                                                    }
+                                                    setIsAddSectionOpen(false);
+                                                }}
+                                                className="cursor-pointer block w-full rounded-xl px-3 py-2 text-left text-white hover:bg-[rgb(40,40,40)]"
+                                            >
+                                                Clubs
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    if (!portfolioData.involvement.visibleSections.includes("workExperience")) {
+                                                        setPortfolioData({
+                                                            ...portfolioData,
+                                                            involvement: {
+                                                                ...portfolioData.involvement,
+                                                                visibleSections: [...portfolioData.involvement.visibleSections, "workExperience"],
+                                                            },
+                                                        });
+                                                    }
+                                                    setIsAddSectionOpen(false);
+                                                }}
+                                                className="cursor-pointer block w-full rounded-xl px-3 py-2 text-left text-white hover:bg-[rgb(40,40,40)]"
+                                            >
+                                                Work Experience
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    if (!portfolioData.involvement.visibleSections.includes("awards")) {
+                                                        setPortfolioData({
+                                                            ...portfolioData,
+                                                            involvement: {
+                                                                ...portfolioData.involvement,
+                                                                visibleSections: [...portfolioData.involvement.visibleSections, "awards"],
+                                                            },
+                                                        });
+                                                    }
+                                                    setIsAddSectionOpen(false);
+                                                }}
+                                                className="cursor-pointer block w-full rounded-xl px-3 py-2 text-left text-white hover:bg-[rgb(40,40,40)]"
+                                            >
+                                                Awards
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    if (!portfolioData.involvement.visibleSections.includes("certifications")) {
+                                                        setPortfolioData({
+                                                            ...portfolioData,
+                                                            involvement: {
+                                                                ...portfolioData.involvement,
+                                                                visibleSections: [...portfolioData.involvement.visibleSections, "certifications"],
+                                                            },
+                                                        });
+                                                    }
+                                                    setIsAddSectionOpen(false);
+                                                }}
+                                                className="cursor-pointer block w-full rounded-xl px-3 py-2 text-left text-white hover:bg-[rgb(40,40,40)]"
+                                            >
+                                                Certifications
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    if (!portfolioData.involvement.visibleSections.includes("volunteer")) {
+                                                        setPortfolioData({
+                                                            ...portfolioData,
+                                                            involvement: {
+                                                                ...portfolioData.involvement,
+                                                                visibleSections: [...portfolioData.involvement.visibleSections, "volunteer"],
+                                                            },
+                                                        });
+                                                    }
+                                                    setIsAddSectionOpen(false);
+                                                }}
+                                                className="cursor-pointer block w-full rounded-xl px-3 py-2 text-left text-white hover:bg-[rgb(40,40,40)]"
+                                            >
+                                                Volunteer
                                             </button>
                                         </div>
-                                        <div className="mt-4 space-y-3">
-                                            {portfolioData.involvement.education.map((entry) => (
-                                                <div
-                                                    key={entry.id}
-                                                    className="rounded-xl border border-gray-700 bg-[rgb(25,25,25)] p-4"
-                                                >
-                                                    <p className="font-semibold text-white">{entry.school || "Untitled School"}</p>
-                                                    <p className="text-gray-400">{entry.degree || ""}</p>
-                                                    <p className="text-sm text-gray-500">
-                                                        {entry.startDate || "Start"} - {entry.endDate || "End"}
-                                                    </p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        {isAddSchoolOpen && (
-                                            <BuilderModal 
-                                                title="Add School" 
-                                                onClose={() => setIsAddSchoolOpen(false)}
-                                                onSave={() => {
-                                                    setPortfolioData({
-                                                        ...portfolioData,
-                                                        involvement: {
-                                                            ...portfolioData.involvement,
-                                                            education: [
-                                                                ...portfolioData.involvement.education,
-                                                                {
-                                                                    id: crypto.randomUUID(),
-                                                                    ...schoolEntry,
-                                                                },
-                                                            ],
+                                    )}
+                                </div>
+                                <div className="max-w-6xl mx-auto mt-12 pb-24 grid grid-cols-12 gap-4">
+                                    {sortedVisibleSections.map((section, index) => renderSectionCard(section, index))}
+                                </div>
+                                {isAddSchoolOpen && (
+                                    <BuilderModal
+                                        title="Add School"
+                                        onClose={() => setIsAddSchoolOpen(false)}
+                                        onSave={() => {
+                                            setPortfolioData({
+                                                ...portfolioData,
+                                                involvement: {
+                                                    ...portfolioData.involvement,
+                                                    education: [
+                                                        ...portfolioData.involvement.education,
+                                                        {
+                                                            id: crypto.randomUUID(),
+                                                            ...schoolEntry,
                                                         },
-                                                    });
-                                                    setIsAddSchoolOpen(false);
-                                                }}
-                                                saveLabel="Save School"
-                                            >
-                                                <div className="space-y-3">
-                                                    <div className="space-y-2">
-                                                        <label className="text-sm font-medium text-gray-300">School</label>
-                                                        <input
-                                                            type="text"
-                                                            value={schoolEntry.school}
-                                                            onChange={(e) =>
-                                                                setSchoolEntry({
-                                                                    ...schoolEntry,
-                                                                    school: e.target.value,
-                                                                })
-                                                            }
-                                                            className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white outline-none"
-                                                        />
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <label className="text-sm font-medium text-gray-300">Degree / Program</label>
-                                                        <input
-                                                            type="text"
-                                                            value={schoolEntry.degree}
-                                                            onChange={(e) =>
-                                                                setSchoolEntry({
-                                                                    ...schoolEntry,
-                                                                    degree: e.target.value,
-                                                                })
-                                                            }
-                                                            className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white outline-none"
-                                                        />
-                                                    </div>
-                                                    <div className="grid grid-cols-2 gap-3">
-                                                        <div className="space-y-2">
-                                                            <label className="text-sm font-medium text-gray-300">Start Date</label>
-                                                            <input
-                                                                type="text"
-                                                                value={schoolEntry.startDate}
-                                                                onChange={(e) =>
-                                                                    setSchoolEntry({
-                                                                        ...schoolEntry,
-                                                                        startDate: e.target.value,
-                                                                    })
-                                                                }
-                                                                className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white outline-none"
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-2">
-                                                            <label className="text-sm font-medium text-gray-300">End Date</label>
-                                                            <input
-                                                                type="text"
-                                                                value={schoolEntry.endDate}
-                                                                onChange={(e) =>
-                                                                    setSchoolEntry({
-                                                                        ...schoolEntry,
-                                                                        endDate: e.target.value,
-                                                                    })
-                                                                }
-                                                                className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white outline-none"
-                                                            />
-                                                        </div>
-                                                    </div>
+                                                    ],
+                                                },
+                                            });
+                                            setIsAddSchoolOpen(false);
+                                            setSchoolEntry({
+                                                school: "",
+                                                degree: "",
+                                                startDate: "",
+                                                endDate: "",
+                                            });
+                                        }}
+                                        saveLabel="Save School"
+                                    >
+                                        <div className="space-y-3">
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-300">School</label>
+                                                <input
+                                                    type="text"
+                                                    value={schoolEntry.school}
+                                                    onChange={(e) =>
+                                                        setSchoolEntry({
+                                                            ...schoolEntry,
+                                                            school: e.target.value,
+                                                        })
+                                                    }
+                                                    placeholder="Enter school name"
+                                                    className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white placeholder-gray-500 outline-none"
+                                                />
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-300">Degree / Program</label>
+                                                <input
+                                                    type="text"
+                                                    value={schoolEntry.degree}
+                                                    onChange={(e) =>
+                                                        setSchoolEntry({
+                                                            ...schoolEntry,
+                                                            degree: e.target.value,
+                                                        })
+                                                    }
+                                                    placeholder="Enter degree or program"
+                                                    className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white placeholder-gray-500 outline-none"
+                                                />
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div className="space-y-2">
+                                                    <label className="text-sm font-medium text-gray-300">Start Date</label>
+                                                    <input
+                                                        type="text"
+                                                        value={schoolEntry.startDate}
+                                                        onChange={(e) =>
+                                                            setSchoolEntry({
+                                                                ...schoolEntry,
+                                                                startDate: e.target.value,
+                                                            })
+                                                        }
+                                                        placeholder="Aug 2022"
+                                                        className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white placeholder-gray-500 outline-none"
+                                                    />
                                                 </div>
-                                            </BuilderModal>
-                                        )}
-                                    </div>
+
+                                                <div className="space-y-2">
+                                                    <label className="text-sm font-medium text-gray-300">End Date</label>
+                                                    <input
+                                                        type="text"
+                                                        value={schoolEntry.endDate}
+                                                        onChange={(e) =>
+                                                            setSchoolEntry({
+                                                                ...schoolEntry,
+                                                                endDate: e.target.value,
+                                                            })
+                                                        }
+                                                        placeholder="May 2026"
+                                                        className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white placeholder-gray-500 outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </BuilderModal>
+                                )}
+                                {isAddWorkExperienceOpen && (
+                                    <BuilderModal
+                                        title="Add Work Experience"
+                                        onClose={() => setIsAddWorkExperienceOpen(false)}
+                                        onSave={() => {
+                                            setPortfolioData({
+                                                ...portfolioData,
+                                                involvement: {
+                                                    ...portfolioData.involvement,
+                                                    workExperience: [
+                                                        ...portfolioData.involvement.workExperience,
+                                                        {
+                                                            id: crypto.randomUUID(),
+                                                            ...workExperienceEntry,
+                                                        },
+                                                    ],
+                                                },
+                                            });
+                                            setIsAddWorkExperienceOpen(false);
+                                            setWorkExperienceEntry({
+                                                company: "",
+                                                role: "",
+                                                startDate: "",
+                                                endDate: "",
+                                                description: "",
+                                            });
+                                        }}
+                                        saveLabel="Save Experience"
+                                    >
+                                        <div className="space-y-3">
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-300">Company</label>
+                                                <input
+                                                    type="text"
+                                                    value={workExperienceEntry.company}
+                                                    onChange={(e) =>
+                                                        setWorkExperienceEntry({
+                                                            ...workExperienceEntry,
+                                                            company: e.target.value,
+                                                        })
+                                                    }
+                                                    placeholder="Enter company name"
+                                                    className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white placeholder-gray-500 outline-none"
+                                                />
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-300">Role</label>
+                                                <input
+                                                    type="text"
+                                                    value={workExperienceEntry.role}
+                                                    onChange={(e) =>
+                                                        setWorkExperienceEntry({
+                                                            ...workExperienceEntry,
+                                                            role: e.target.value,
+                                                        })
+                                                    }
+                                                    placeholder="Enter role title"
+                                                    className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white placeholder-gray-500 outline-none"
+                                                />
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div className="space-y-2">
+                                                    <label className="text-sm font-medium text-gray-300">Start Date</label>
+                                                    <input
+                                                        type="text"
+                                                        value={workExperienceEntry.startDate}
+                                                        onChange={(e) =>
+                                                            setWorkExperienceEntry({
+                                                                ...workExperienceEntry,
+                                                                startDate: e.target.value,
+                                                            })
+                                                        }
+                                                        placeholder="Aug 2024"
+                                                        className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white placeholder-gray-500 outline-none"
+                                                    />
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <label className="text-sm font-medium text-gray-300">End Date</label>
+                                                    <input
+                                                        type="text"
+                                                        value={workExperienceEntry.endDate}
+                                                        onChange={(e) =>
+                                                            setWorkExperienceEntry({
+                                                                ...workExperienceEntry,
+                                                                endDate: e.target.value,
+                                                            })
+                                                        }
+                                                        placeholder="Present"
+                                                        className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white placeholder-gray-500 outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-300">Description</label>
+                                                <textarea
+                                                    rows={4}
+                                                    value={workExperienceEntry.description}
+                                                    onChange={(e) =>
+                                                        setWorkExperienceEntry({
+                                                            ...workExperienceEntry,
+                                                            description: e.target.value,
+                                                        })
+                                                    }
+                                                    placeholder="Describe what you did in this role"
+                                                    className="w-full resize-none rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white placeholder-gray-500 outline-none"
+                                                />
+                                            </div>
+                                        </div>
+                                    </BuilderModal>
+                                )}
+                                {isAddClubOpen && (
+                                    <BuilderModal
+                                        title="Add Club"
+                                        onClose={() => setIsAddClubOpen(false)}
+                                        onSave={() => {
+                                            setPortfolioData({
+                                                ...portfolioData,
+                                                involvement: {
+                                                    ...portfolioData.involvement,
+                                                    clubs: [
+                                                        ...portfolioData.involvement.clubs,
+                                                        {
+                                                            id: crypto.randomUUID(),
+                                                            ...clubEntry,
+                                                        },
+                                                    ],
+                                                },
+                                            });
+                                            setIsAddClubOpen(false);
+                                            setClubEntry({
+                                                club: "",
+                                                role: "",
+                                                startDate: "",
+                                                endDate: "",
+                                                description: "",
+                                            });
+                                        }}
+                                        saveLabel="Save Club"
+                                    >
+                                        <div className="space-y-3">
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-300">Club</label>
+                                                <input
+                                                    type="text"
+                                                    value={clubEntry.club}
+                                                    onChange={(e) =>
+                                                        setClubEntry({
+                                                            ...clubEntry,
+                                                            club: e.target.value,
+                                                        })
+                                                    }
+                                                    placeholder="Enter club name"
+                                                    className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white placeholder-gray-500 outline-none"
+                                                />
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-300">Role</label>
+                                                <input
+                                                    type="text"
+                                                    value={clubEntry.role}
+                                                    onChange={(e) =>
+                                                        setClubEntry({
+                                                            ...clubEntry,
+                                                            role: e.target.value,
+                                                        })
+                                                    }
+                                                    placeholder="Enter your role"
+                                                    className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white placeholder-gray-500 outline-none"
+                                                />
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div className="space-y-2">
+                                                    <label className="text-sm font-medium text-gray-300">Start Date</label>
+                                                    <input
+                                                        type="text"
+                                                        value={clubEntry.startDate}
+                                                        onChange={(e) =>
+                                                            setClubEntry({
+                                                                ...clubEntry,
+                                                                startDate: e.target.value,
+                                                            })
+                                                        }
+                                                        placeholder="Aug 2024"
+                                                        className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white placeholder-gray-500 outline-none"
+                                                    />
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <label className="text-sm font-medium text-gray-300">End Date</label>
+                                                    <input
+                                                        type="text"
+                                                        value={clubEntry.endDate}
+                                                        onChange={(e) =>
+                                                            setClubEntry({
+                                                                ...clubEntry,
+                                                                endDate: e.target.value,
+                                                            })
+                                                        }
+                                                        placeholder="Present"
+                                                        className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white placeholder-gray-500 outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-300">Description</label>
+                                                <textarea
+                                                    rows={4}
+                                                    value={clubEntry.description}
+                                                    onChange={(e) =>
+                                                        setClubEntry({
+                                                            ...clubEntry,
+                                                            description: e.target.value,
+                                                        })
+                                                    }
+                                                    placeholder="Describe your involvement"
+                                                    className="w-full resize-none rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white placeholder-gray-500 outline-none"
+                                                />
+                                            </div>
+                                        </div>
+                                    </BuilderModal>
+                                )}
+                                {isAddSkillOpen && (
+                                    <BuilderModal
+                                        title="Add Skill"
+                                        onClose={() => setIsAddSkillOpen(false)}
+                                        onSave={() => {
+                                            if (!skillEntry.name.trim()) return;
+
+                                            setPortfolioData({
+                                                ...portfolioData,
+                                                involvement: {
+                                                    ...portfolioData.involvement,
+                                                    skills: [
+                                                        ...portfolioData.involvement.skills,
+                                                        {
+                                                            id: crypto.randomUUID(),
+                                                            name: skillEntry.name.trim(),
+                                                        },
+                                                    ],
+                                                },
+                                            });
+                                            setIsAddSkillOpen(false);
+                                            setSkillEntry({
+                                                name: "",
+                                            });
+                                        }}
+                                        saveLabel="Save Skill"
+                                    >
+                                        <div className="space-y-3">
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-300">Skill</label>
+                                                <input
+                                                    type="text"
+                                                    value={skillEntry.name}
+                                                    onChange={(e) =>
+                                                        setSkillEntry({
+                                                            name: e.target.value,
+                                                        })
+                                                    }
+                                                    placeholder="Enter a skill"
+                                                    className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white placeholder-gray-500 outline-none"
+                                                />
+                                            </div>
+                                        </div>
+                                    </BuilderModal>
+                                )}
+                                {isAddVolunteerOpen && (
+                                    <BuilderModal
+                                        title="Add Volunteer Experience"
+                                        onClose={() => setIsAddVolunteerOpen(false)}
+                                        onSave={() => {
+                                            setPortfolioData({
+                                                ...portfolioData,
+                                                involvement: {
+                                                    ...portfolioData.involvement,
+                                                    volunteer: [
+                                                        ...portfolioData.involvement.volunteer,
+                                                        {
+                                                            id: crypto.randomUUID(),
+                                                            ...volunteerEntry,
+                                                        },
+                                                    ],
+                                                },
+                                            });
+                                            setIsAddVolunteerOpen(false);
+                                            setVolunteerEntry({
+                                                organization: "",
+                                                role: "",
+                                                startDate: "",
+                                                endDate: "",
+                                                description: "",
+                                            });
+                                        }}
+                                        saveLabel="Save Volunteer"
+                                    >
+                                        <div className="space-y-3">
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-300">Organization</label>
+                                                <input
+                                                    type="text"
+                                                    value={volunteerEntry.organization}
+                                                    onChange={(e) =>
+                                                        setVolunteerEntry({
+                                                            ...volunteerEntry,
+                                                            organization: e.target.value,
+                                                        })
+                                                    }
+                                                    placeholder="Enter organization name"
+                                                    className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white placeholder-gray-500 outline-none"
+                                                />
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-300">Role</label>
+                                                <input
+                                                    type="text"
+                                                    value={volunteerEntry.role}
+                                                    onChange={(e) =>
+                                                        setVolunteerEntry({
+                                                            ...volunteerEntry,
+                                                            role: e.target.value,
+                                                        })
+                                                    }
+                                                    placeholder="Enter your role"
+                                                    className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white placeholder-gray-500 outline-none"
+                                                />
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div className="space-y-2">
+                                                    <label className="text-sm font-medium text-gray-300">Start Date</label>
+                                                    <input
+                                                        type="text"
+                                                        value={volunteerEntry.startDate}
+                                                        onChange={(e) =>
+                                                            setVolunteerEntry({
+                                                                ...volunteerEntry,
+                                                                startDate: e.target.value,
+                                                            })
+                                                        }
+                                                        placeholder="Aug 2024"
+                                                        className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white placeholder-gray-500 outline-none"
+                                                    />
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <label className="text-sm font-medium text-gray-300">End Date</label>
+                                                    <input
+                                                        type="text"
+                                                        value={volunteerEntry.endDate}
+                                                        onChange={(e) =>
+                                                            setVolunteerEntry({
+                                                                ...volunteerEntry,
+                                                                endDate: e.target.value,
+                                                            })
+                                                        }
+                                                        placeholder="Present"
+                                                        className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white placeholder-gray-500 outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-300">Description</label>
+                                                <textarea
+                                                    rows={4}
+                                                    value={volunteerEntry.description}
+                                                    onChange={(e) =>
+                                                        setVolunteerEntry({
+                                                            ...volunteerEntry,
+                                                            description: e.target.value,
+                                                        })
+                                                    }
+                                                    placeholder="Describe your volunteer work"
+                                                    className="w-full resize-none rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white placeholder-gray-500 outline-none"
+                                                />
+                                            </div>
+                                        </div>
+                                    </BuilderModal>
+                                )}
+                                {isAddAwardOpen && (
+                                    <BuilderModal
+                                        title="Add Award"
+                                        onClose={() => setIsAddAwardOpen(false)}
+                                        onSave={() => {
+                                            setPortfolioData({
+                                                ...portfolioData,
+                                                involvement: {
+                                                    ...portfolioData.involvement,
+                                                    awards: [
+                                                        ...portfolioData.involvement.awards,
+                                                        {
+                                                            id: crypto.randomUUID(),
+                                                            ...awardEntry,
+                                                        },
+                                                    ],
+                                                },
+                                            });
+                                            setIsAddAwardOpen(false);
+                                            setAwardEntry({
+                                                title: "",
+                                                issuer: "",
+                                                date: "",
+                                                description: "",
+                                            });
+                                        }}
+                                        saveLabel="Save Award"
+                                    >
+                                        <div className="space-y-3">
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-300">Award Title</label>
+                                                <input
+                                                    type="text"
+                                                    value={awardEntry.title}
+                                                    onChange={(e) =>
+                                                        setAwardEntry({
+                                                            ...awardEntry,
+                                                            title: e.target.value,
+                                                        })
+                                                    }
+                                                    placeholder="Enter award title"
+                                                    className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white placeholder-gray-500 outline-none"
+                                                />
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-300">Issuer</label>
+                                                <input
+                                                    type="text"
+                                                    value={awardEntry.issuer}
+                                                    onChange={(e) =>
+                                                        setAwardEntry({
+                                                            ...awardEntry,
+                                                            issuer: e.target.value,
+                                                        })
+                                                    }
+                                                    placeholder="Enter issuer"
+                                                    className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white placeholder-gray-500 outline-none"
+                                                />
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-300">Date</label>
+                                                <input
+                                                    type="text"
+                                                    value={awardEntry.date}
+                                                    onChange={(e) =>
+                                                        setAwardEntry({
+                                                            ...awardEntry,
+                                                            date: e.target.value,
+                                                        })
+                                                    }
+                                                    placeholder="Apr 2026"
+                                                    className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white placeholder-gray-500 outline-none"
+                                                />
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-300">Description</label>
+                                                <textarea
+                                                    rows={4}
+                                                    value={awardEntry.description}
+                                                    onChange={(e) =>
+                                                        setAwardEntry({
+                                                            ...awardEntry,
+                                                            description: e.target.value,
+                                                        })
+                                                    }
+                                                    placeholder="Optional description"
+                                                    className="w-full resize-none rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white placeholder-gray-500 outline-none"
+                                                />
+                                            </div>
+                                        </div>
+                                    </BuilderModal>
+                                )}
+                                {isAddCertificationOpen && (
+                                    <BuilderModal
+                                        title="Add Certification"
+                                        onClose={() => setIsAddCertificationOpen(false)}
+                                        onSave={() => {
+                                            setPortfolioData({
+                                                ...portfolioData,
+                                                involvement: {
+                                                    ...portfolioData.involvement,
+                                                    certifications: [
+                                                        ...portfolioData.involvement.certifications,
+                                                        {
+                                                            id: crypto.randomUUID(),
+                                                            ...certificationEntry,
+                                                        },
+                                                    ],
+                                                },
+                                            });
+                                            setIsAddCertificationOpen(false);
+                                            setCertificationEntry({
+                                                name: "",
+                                                issuer: "",
+                                                date: "",
+                                                credentialLink: "",
+                                            });
+                                        }}
+                                        saveLabel="Save Certification"
+                                    >
+                                        <div className="space-y-3">
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-300">Certification Name</label>
+                                                <input
+                                                    type="text"
+                                                    value={certificationEntry.name}
+                                                    onChange={(e) =>
+                                                        setCertificationEntry({
+                                                            ...certificationEntry,
+                                                            name: e.target.value,
+                                                        })
+                                                    }
+                                                    placeholder="Enter certification name"
+                                                    className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white placeholder-gray-500 outline-none"
+                                                />
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-300">Issuer</label>
+                                                <input
+                                                    type="text"
+                                                    value={certificationEntry.issuer}
+                                                    onChange={(e) =>
+                                                        setCertificationEntry({
+                                                            ...certificationEntry,
+                                                            issuer: e.target.value,
+                                                        })
+                                                    }
+                                                    placeholder="Enter issuer"
+                                                    className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white placeholder-gray-500 outline-none"
+                                                />
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-300">Date</label>
+                                                <input
+                                                    type="text"
+                                                    value={certificationEntry.date}
+                                                    onChange={(e) =>
+                                                        setCertificationEntry({
+                                                            ...certificationEntry,
+                                                            date: e.target.value,
+                                                        })
+                                                    }
+                                                    placeholder="Apr 2026"
+                                                    className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white placeholder-gray-500 outline-none"
+                                                />
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium text-gray-300">Credential Link</label>
+                                                <input
+                                                    type="text"
+                                                    value={certificationEntry.credentialLink}
+                                                    onChange={(e) =>
+                                                        setCertificationEntry({
+                                                            ...certificationEntry,
+                                                            credentialLink: e.target.value,
+                                                        })
+                                                    }
+                                                    placeholder="Paste credential URL"
+                                                    className="w-full rounded-lg border border-gray-700 bg-[rgb(35,35,35)] px-4 py-2 text-white placeholder-gray-500 outline-none"
+                                                />
+                                            </div>
+                                        </div>
+                                    </BuilderModal>
                                 )}
                             </div>
                         )}
