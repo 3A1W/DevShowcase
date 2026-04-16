@@ -12,6 +12,53 @@ import BuilderModal from "../components/BuilderModal";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
+const fileToDataUrl = (file) =>
+    new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+
+const convertPortfolioFilesToBase64 = async (portfolioData) => {
+    const convertedAbout = { ...portfolioData.about };
+    const convertedProjects = await Promise.all(
+        portfolioData.projects.map(async (project) => {
+            let convertedImages = project.images || [];
+
+            if (project.mediaType === "images" && Array.isArray(project.images)) {
+                convertedImages = await Promise.all(
+                    project.images.map(async (image) => {
+                        if (image instanceof File) {
+                            return await fileToDataUrl(image);
+                        }
+                        return image;
+                    })
+                );
+            }
+
+            return {
+                ...project,
+                images: convertedImages,
+            };
+        })
+    );
+
+    if (convertedAbout.headshot instanceof File) {
+        convertedAbout.headshot = await fileToDataUrl(convertedAbout.headshot);
+    }
+
+    if (convertedAbout.resume instanceof File) {
+        convertedAbout.resume = await fileToDataUrl(convertedAbout.resume);
+    }
+
+    return {
+        ...portfolioData,
+        about: convertedAbout,
+        projects: convertedProjects,
+    };
+};
+
 export default function BuildPage() {
     // Clerk hooks to grab the token and check auth status
     const { getToken, isLoaded, isSignedIn } = useAuth();
@@ -770,10 +817,11 @@ const displayName = portfolioData.about.name.trim() || "Your Name";
     const savePortfolio = async () => {
         try {
             const token = await getToken();
-            
-            // Merge the portfolio data with the user's Clerk profile info
+
+            const serializedPortfolioData = await convertPortfolioFilesToBase64(portfolioData);
+
             const payload = {
-                ...portfolioData,
+                ...serializedPortfolioData,
                 email: user?.primaryEmailAddress?.emailAddress || "",
                 username: user?.username || user?.fullName || "Developer",
             };
@@ -782,13 +830,16 @@ const displayName = portfolioData.about.name.trim() || "Your Name";
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`
+                    Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify(payload) 
+                body: JSON.stringify(payload),
             });
+
             const data = await response.json();
             alert(data.message);
             setBackendResponse(data);
+
+            setPortfolioData(serializedPortfolioData);
         } catch (error) {
             console.error("Failed to save:", error);
             alert("Failed to save build to database. Check if your backend is running.");
@@ -998,7 +1049,7 @@ const displayName = portfolioData.about.name.trim() || "Your Name";
                             />
                         </div>
 
-<div className="pt-5 px-2 space-y-3">
+                        <div className="pt-5 px-2 space-y-3">
                            <div className="grid grid-cols-2 gap-3">
                                <button
                                     onClick={savePortfolio}
@@ -1109,7 +1160,7 @@ const displayName = portfolioData.about.name.trim() || "Your Name";
                         </div>
                         
                         {activePage === "about" && selectedTemplate === "classic" && (
-                            <div className="p-0">
+                            <div className="p-0 flex flex-col min-h-[778px]">
                                 <div className="mt-2 flex gap-2 max-w-4xl mx-auto justify-center items-center">
                                     <input
                                         id="headshotUpload"
@@ -1133,18 +1184,23 @@ const displayName = portfolioData.about.name.trim() || "Your Name";
                                         onClick={() => document.getElementById("headshotUpload").click()}
                                         className="flex h-72 w-72 cursor-pointer items-center justify-center rounded-full border border-gray-700 bg-[rgb(35,35,35)] text-sm text-gray-400 overflow-hidden"
                                     >
-                                        {portfolioData.about.headshot ? (
-                                            <img
-                                                src={URL.createObjectURL(portfolioData.about.headshot)}
-                                                alt={tempHeadshot}
-                                                className="h-full w-full object-cover"
-                                            />
-                                        ) : (
-                                            <img
-                                                src={tempHeadshot}
-                                                className="h-full w-full object-cover"
-                                            />
-                                        )}
+                                        {(() => {
+                                            const headshot = portfolioData.about.headshot;
+                                            const headshotSrc =
+                                                typeof headshot === "string" && headshot.trim() !== ""
+                                                    ? headshot
+                                                    : headshot instanceof File
+                                                        ? URL.createObjectURL(headshot)
+                                                        : tempHeadshot;
+
+                                            return (
+                                                <img
+                                                    src={headshotSrc}
+                                                    alt="Headshot"
+                                                    className="h-full w-full object-cover"
+                                                />
+                                            );
+                                        })()}
                                     </div>
 
                                     <div className="w-[520px]">
@@ -1318,7 +1374,7 @@ const displayName = portfolioData.about.name.trim() || "Your Name";
                                         </div>
                                     </div>
                                 </div>
-                                <div className="relative z-10 -mt-14 bg-[rgb(40,40,40)] p-12 border-t-6 text-gray-400 text-justify" style={{ color: primaryColor }}>
+                                <div className="relative flex-1 z-10 -mt-14 bg-[rgb(40,40,40)] p-12 border-t-6 text-gray-400 text-justify" style={{ color: primaryColor }}>
                                     <div className="max-w-5xl mx-auto">
                                         <h2 className="text-2xl font-bold text-white">About Me</h2>
                                         {isEditingBio ? (
@@ -1358,15 +1414,25 @@ const displayName = portfolioData.about.name.trim() || "Your Name";
                                                 {displayBio}
                                             </p>
                                         )}
-                                        {portfolioData.about.resume && (
-                                            <div className="mt-8">
-                                                <iframe
-                                                    src={URL.createObjectURL(portfolioData.about.resume)}
-                                                    title="Resume Preview"
-                                                    className="h-[1130px] w-full rounded-2xl border border-gray-700 bg-white"
-                                                />
-                                            </div>
-                                        )}
+                                        {(() => {
+                                            const resume = portfolioData.about.resume;
+                                            const resumeSrc =
+                                                typeof resume === "string" && resume.trim() !== ""
+                                                    ? resume
+                                                    : resume instanceof File
+                                                        ? URL.createObjectURL(resume)
+                                                        : null;
+
+                                            return resumeSrc ? (
+                                                <div className="mt-8">
+                                                    <iframe
+                                                        src={resumeSrc}
+                                                        title="Resume Preview"
+                                                        className="h-[1130px] w-full rounded-2xl border border-gray-700 bg-white"
+                                                    />
+                                                </div>
+                                            ) : null;
+                                        })()}
                                         <input
                                             id="resumeUpload"
                                             type="file"
@@ -1403,9 +1469,11 @@ const displayName = portfolioData.about.name.trim() || "Your Name";
                                             }}
                                             className="flex mt-6 cursor-pointer min-h-32 w-full mx-auto items-center justify-center rounded-2xl border-2 border-dashed border-gray-600 bg-[rgb(35,35,35)] p-6 text-center text-gray-400"
                                         >
-                                            {portfolioData.about.resume
+                                            {portfolioData.about.resume instanceof File
                                                 ? portfolioData.about.resume.name
-                                                : "Drag and drop your resume PDF here"}
+                                                : portfolioData.about.resume
+                                                    ? "Resume uploaded"
+                                                    : "Drag and drop your resume PDF here"}
                                         </div>
                                     </div>
                                 </div>
@@ -1543,10 +1611,20 @@ const displayName = portfolioData.about.name.trim() || "Your Name";
                                                                 const currentIndex = activeImageIndexes[project.id] || 0;
                                                                 const prevIndex = currentIndex === 0 ? project.images.length - 1 : currentIndex - 1;
                                                                 const nextIndex = currentIndex === project.images.length - 1 ? 0 : currentIndex + 1;
+                                                                
+                                                                const currentImage = project.images[currentIndex];
+                                                                const imageSrc =
+                                                                    typeof currentImage === "string" && currentImage.trim() !== ""
+                                                                        ? currentImage
+                                                                        : currentImage instanceof File
+                                                                            ? URL.createObjectURL(currentImage)
+                                                                            : null;
+                                                                if (!imageSrc) return null;
+
                                                                 return (
                                                                     <div className="relative">
                                                                         <img
-                                                                            src={URL.createObjectURL(project.images[currentIndex])}
+                                                                            src={imageSrc}
                                                                             alt="Project preview"
                                                                             className="h-72 w-full rounded-2xl object-cover border border-gray-700"
                                                                         />
