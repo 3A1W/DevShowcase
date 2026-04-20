@@ -829,6 +829,9 @@ const displayName = portfolioData.about.name.trim() || "Your Name";
     const savePortfolio = async () => {
         try {
             const token = await getToken();
+            if (!token) {
+                throw new Error("No auth token found.");
+            }
 
             const serializedPortfolioData = await convertPortfolioFilesToBase64(portfolioData);
 
@@ -847,14 +850,23 @@ const displayName = portfolioData.about.name.trim() || "Your Name";
                 body: JSON.stringify(payload),
             });
 
-            const data = await response.json();
-            alert(data.message);
-            setBackendResponse(data);
+            let data = null;
+            try {
+                data = await response.json();
+            } catch {
+                data = null;
+            }
 
+            if (!response.ok) {
+                throw new Error(data?.detail || data?.message || `Save failed with status ${response.status}`);
+            }
+
+            alert(data?.message || "Saved successfully.");
+            setBackendResponse(data);
             setPortfolioData(serializedPortfolioData);
         } catch (error) {
             console.error("Failed to save:", error);
-            alert("Failed to save build to database. Check if your backend is running.");
+            alert(`Save failed: ${error.message}`);
         }
     };
 
@@ -2096,7 +2108,9 @@ const displayName = portfolioData.about.name.trim() || "Your Name";
                                                         const imageSrc =
                                                             typeof currentImage === "string" && currentImage.trim() !== ""
                                                                 ? currentImage
-                                                                : "";
+                                                                : currentImage instanceof File
+                                                                    ? URL.createObjectURL(currentImage)
+                                                                    : null;
 
                                                         if (!imageSrc) return null;
 

@@ -562,7 +562,9 @@ export default function PublicPortfolioPage() {
                                             const imageSrc =
                                                 typeof currentImage === "string" && currentImage.trim() !== ""
                                                     ? currentImage
-                                                    : "";
+                                                    : currentImage instanceof File
+                                                        ? URL.createObjectURL(currentImage)
+                                                        : null;
 
                                             if (!imageSrc) return null;
 
@@ -865,7 +867,9 @@ export default function PublicPortfolioPage() {
                                             const imageSrc =
                                                 typeof currentImage === "string" && currentImage.trim() !== ""
                                                     ? currentImage
-                                                    : "";
+                                                    : currentImage instanceof File
+                                                        ? URL.createObjectURL(currentImage)
+                                                        : null;
 
                                             if (!imageSrc) return null;
 
