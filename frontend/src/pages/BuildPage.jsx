@@ -757,7 +757,7 @@ const displayName = portfolioData.about.name.trim() || "Your Name";
         const fetchExistingPortfolio = async () => {
             try {
                 const token = await getToken();
-                const response = await fetch("http://localhost:8080/get-portfolio", {
+                const response = await fetch(`${API_BASE_URL}/get-portfolio`, {
                     method: "GET",
                     headers: {
                         Authorization: `Bearer ${token}`
@@ -838,7 +838,7 @@ const displayName = portfolioData.about.name.trim() || "Your Name";
                 username: user?.username || user?.fullName || "Developer",
             };
 
-            const response = await fetch("http://localhost:8080/save-portfolio", {
+            const response = await fetch(`${API_BASE_URL}/save-portfolio`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -948,7 +948,7 @@ const displayName = portfolioData.about.name.trim() || "Your Name";
         try {
             const token = await getToken();
             console.log("Token generated:", token); 
-            const response = await fetch("http://localhost:8080/protected", {
+            const response = await fetch(`${API_BASE_URL}/protected`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
