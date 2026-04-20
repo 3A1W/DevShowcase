@@ -7,6 +7,7 @@ import SignInPage from "./pages/SignInPage.jsx";
 import SignUpPage from "./pages/SignUpPage.jsx";
 import BuildPage from "./pages/BuildPage.jsx";
 import AboutPage from "./pages/AboutPage.jsx";
+import AdminDashboardPage from "./pages/AdminDashboardPage.jsx";
 import GithubCallbackPage from "./pages/GithubCallbackPage.jsx";
 import PublicPortfolioPage from "./pages/PublicPortfolioPage.jsx";
 
@@ -36,6 +37,7 @@ export default function App() {
       <Route path="/about" element={<AboutPage />} />
       <Route path="/build" element={<BuildPage />} />
       <Route path="/oauth/github/callback" element={<GithubCallbackPage />} />
+      <Route path="/admin-dashboard" element={<AdminDashboardPage />} />
       
       {/* Live published portfolio route */}
       <Route path="/p/:username" element={<PublicPortfolioPage />} />

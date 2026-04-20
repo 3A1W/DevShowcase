@@ -146,55 +146,35 @@ def get_connection_status(clerk_id: str) -> Dict[str, Any]:
 
 
 def import_selected_repositories(clerk_id: str, repo_ids: Iterable[int]) -> Dict[str, Any]:
-    portfolio = Portfolio.objects(clerk_id=clerk_id).first()
-    if not portfolio:
-        portfolio = Portfolio(clerk_id=clerk_id)
-
     repo_id_list = [int(repo_id) for repo_id in repo_ids]
     selected_repositories = RepositoryCache.objects(clerk_id=clerk_id, repo_id__in=repo_id_list)
-    selected_repo_map = {repo.repo_id: repo for repo in selected_repositories}
-    existing_projects = list(portfolio.projects or [])
-    existing_repo_ids = {
-        int(project.get("repoId"))
-        for project in existing_projects
-        if isinstance(project, dict) and project.get("repoId") is not None
-    }
-
-    imported_count = 0
-    for repo_id in repo_id_list:
-        repo = selected_repo_map.get(int(repo_id))
-        if not repo or repo.repo_id in existing_repo_ids:
-            continue
-
-        existing_projects.append(
-            {
-                "id": repo.repo_id,
-                "title": repo.name,
-                "description": repo.description or "",
-                "githubUrl": repo.html_url,
-                "liveUrl": repo.homepage or "",
-                "technologies": ", ".join(filter(None, [repo.language, *repo.topics])),
-                "source": "github",
-                "repoId": repo.repo_id,
-                "fullName": repo.full_name,
-                "stars": repo.stars,
-                "forks": repo.forks,
-            }
-        )
-        imported_count += 1
-
-    portfolio.projects = existing_projects
-    portfolio.githubSync = {
-        "lastImportedAt": datetime.now(timezone.utc).isoformat(),
-        "importedCount": imported_count,
-    }
-    portfolio.save()
+    
+    formatted_projects = []
+    
+    # Just format the data, DO NOT save to Portfolio DB here! Let the frontend handle state.
+    for repo in selected_repositories:
+        formatted_projects.append({
+            "id": str(repo.repo_id), # Use string for React keys to prevent clashes
+            "title": repo.name,
+            "description": repo.description or "",
+            "githubUrl": repo.html_url,
+            "liveUrl": repo.homepage or "",
+            "technologies": ", ".join(filter(None, [repo.language, *repo.topics])),
+            "source": "github",
+            "repoId": repo.repo_id,
+            "fullName": repo.full_name,
+            "stars": repo.stars,
+            "forks": repo.forks,
+            "mediaType": "youtube",
+            "youtubeUrl": "",
+            "images": []
+        })
 
     return {
-        "imported_count": imported_count,
-        "portfolio": json.loads(portfolio.to_json()),
+        "success": True,
+        "imported_count": len(formatted_projects),
+        "new_projects": formatted_projects, 
     }
-
 
 def disconnect_github(clerk_id: str) -> None:
     GitHubConnection.objects(clerk_id=clerk_id).delete()

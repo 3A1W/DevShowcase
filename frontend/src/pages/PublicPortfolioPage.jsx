@@ -410,7 +410,7 @@ export default function PublicPortfolioPage() {
                                         : tempHeadshot
                                 }
                                 alt="Headshot"
-                                className="h-full w-full object-cover"
+                                className="h-full w-full object-cover object-center"
                             />
                         </div>
 
@@ -616,14 +616,14 @@ export default function PublicPortfolioPage() {
 
             {activePage === "projects" && portfolioData.template === "minimalist" && (
                 <div className="px-8 mt-12">
-                    <div className="mx-auto grid max-w-6xl grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 auto-rows-[220px]">
+                    <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
                         {projects?.map((project, index) => (
                             <a
                                 key={project.id || index}
                                 href={project.githubUrl || "#"}
                                 target={project.githubUrl ? "_blank" : undefined}
                                 rel={project.githubUrl ? "noreferrer" : undefined}
-                                className={`group rounded-2xl border bg-[rgb(35,35,35)] p-6 transition hover:-translate-y-1 hover:bg-[rgb(42,42,42)] ${
+                                className={`group rounded-2xl border bg-[rgb(35,35,35)] p-6 transition hover:-translate-y-1 hover:bg-[rgb(42,42,42)] min-h-[220px] h-full flex flex-col justify-between ${
                                     project.githubUrl ? "cursor-pointer" : "cursor-default"
                                 }`}
                                 style={{ borderColor: primaryColor }}

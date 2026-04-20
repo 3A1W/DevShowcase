@@ -256,3 +256,35 @@ async def github_disconnect(user=Depends(get_current_user)):
     clerk_id = user["payload"]["sub"]
     disconnect_github(clerk_id)
     return {"success": True, "message": "GitHub disconnected successfully"}
+
+# --- ADMIN DASHBOARD ROUTE ---
+@app.get("/api/admin/dashboard")
+async def get_admin_dashboard(user=Depends(get_current_user)):
+    # 1. Verify this user is an admin via Clerk metadata
+    metadata = user.get("payload", {}).get("public_metadata", {})
+    if metadata.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Unauthorized. Admins only.")
+
+    # 2. Gather platform statistics
+    all_portfolios = Portfolio.objects()
+    
+    stats = {
+        "total_users": all_portfolios.count(),
+        "published_count": sum(1 for p in all_portfolios if p.published_portfolio),
+        "classic_templates": sum(1 for p in all_portfolios if p.template == "classic"),
+        "minimalist_templates": sum(1 for p in all_portfolios if p.template == "minimalist"),
+        "technical_templates": sum(1 for p in all_portfolios if p.template == "technical"),
+    }
+
+    # 3. Get the latest 10 users for the data table
+    recent_users = []
+    for p in all_portfolios.order_by('-id').limit(10):
+        recent_users.append({
+            "id": str(p.id),
+            "email": p.email or "Unknown",
+            "username": p.username or "Unset",
+            "template": p.template,
+            "is_published": bool(p.published_portfolio)
+        })
+
+    return {"stats": stats, "recent_users": recent_users}

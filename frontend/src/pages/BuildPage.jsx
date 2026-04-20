@@ -815,6 +815,15 @@ const displayName = portfolioData.about.name.trim() || "Your Name";
         fetchExistingPortfolio();
         loadGithubState();
     }, [isLoaded, isSignedIn, getToken]);
+    
+    useEffect(() => {
+        const handleBeforeUnload = (e) => {
+            e.preventDefault();
+            e.returnValue = "You have unsaved changes! Are you sure you want to leave?";
+        };
+        window.addEventListener("beforeunload", handleBeforeUnload);
+        return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+    }, []);
 
     // --- SAVE TO MONGODB FUNCTION ---
     const savePortfolio = async () => {
@@ -908,12 +917,25 @@ const displayName = portfolioData.about.name.trim() || "Your Name";
                 body: JSON.stringify({ repo_ids: selectedGithubRepoIds }),
             });
             const data = await response.json();
-            setPortfolioData((currentData) => ({
-                ...currentData,
-                projects: data.portfolio?.projects || [],
-            }));
-            setSelectedGithubRepoIds([]);
-            setGithubMessage(`Imported ${data.imported_count || 0} repositor${data.imported_count === 1 ? "y" : "ies"}.`);
+            
+            if (data.success && data.new_projects) {
+                setPortfolioData((currentData) => {
+                    const existingProjects = currentData.projects || [];
+                    
+                    // Filter out repos that are already in the UI to prevent duplicates
+                    const uniqueNewProjects = data.new_projects.filter(
+                        newProj => !existingProjects.some(existing => existing.repoId === newProj.repoId)
+                    );
+
+                    return {
+                        ...currentData,
+                        projects: [...existingProjects, ...uniqueNewProjects],
+                    };
+                });
+
+                setSelectedGithubRepoIds([]);
+                setGithubMessage(`Imported ${data.imported_count || 0} repositories.`);
+            }
         } catch (error) {
             console.error("Failed to import GitHub repos:", error);
             setGithubError(error.message || "Unable to import repositories.");
@@ -1217,7 +1239,7 @@ const displayName = portfolioData.about.name.trim() || "Your Name";
                                                 <img
                                                     src={headshotSrc}
                                                     alt="Headshot"
-                                                    className="h-full w-full object-cover"
+                                                    className="h-full w-full object-cover object-center"
                                                 />
                                             );
                                         })()}
@@ -1723,11 +1745,11 @@ const displayName = portfolioData.about.name.trim() || "Your Name";
                                 </div>
 
                                 <div className="px-8 py-10">
-                                    <div className="mx-auto grid max-w-6xl grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 auto-rows-[220px]">
+                                    <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
                                         {portfolioData.projects.map((project, index) => (
                                             <div
                                                 key={project.id || index}
-                                                className="group relative rounded-2xl border bg-[rgb(35,35,35)] p-6 transition hover:-translate-y-1 hover:bg-[rgb(42,42,42)]"
+                                                className="group relative rounded-2xl border bg-[rgb(35,35,35)] p-6 transition hover:-translate-y-1 hover:bg-[rgb(42,42,42)] min-h-[220px] h-full flex flex-col justify-between"
                                                 style={{ borderColor: primaryColor }}
                                             >
                                                 <div className="absolute right-4 top-4 flex gap-2 opacity-0 transition group-hover:opacity-100">
