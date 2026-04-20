@@ -1005,7 +1005,7 @@ const displayName = portfolioData.about.name.trim() || "Your Name";
 
     return (
         <div className="flex h-screen overflow-hidden text-white bg-[rgb(25,25,25)]">
-            <aside className="w-64 h-full overflow-hidden border-r border-gray-700 flex flex-col p-4">
+            <aside className="w-64 h-full overflow-scroll border-r border-gray-700 flex flex-col p-4">
                 <div className="mb-6 pb-0 space-y-3">
                     <Link className="flex items-center" to="/">
                         <img src={logo} className="h-12 w-auto"/>
