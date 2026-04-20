@@ -1,12 +1,11 @@
 import { Routes, Route } from "react-router-dom";
-import { useEffect} from "react";
+import { useEffect } from "react";
 import Lenis from "lenis";
 
 import HomePage from "./pages/HomePage.jsx";
 import SignInPage from "./pages/SignInPage.jsx";
 import SignUpPage from "./pages/SignUpPage.jsx";
 import BuildPage from "./pages/BuildPage.jsx";
-import AboutPage from "./pages/AboutPage.jsx";
 import AdminDashboardPage from "./pages/AdminDashboardPage.jsx";
 import GithubCallbackPage from "./pages/GithubCallbackPage.jsx";
 import PublicPortfolioPage from "./pages/PublicPortfolioPage.jsx";
@@ -34,7 +33,6 @@ export default function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/sign-in/*" element={<SignInPage />} />
       <Route path="/sign-up/*" element={<SignUpPage />} />
-      <Route path="/about" element={<AboutPage />} />
       <Route path="/build" element={<BuildPage />} />
       <Route path="/oauth/github/callback" element={<GithubCallbackPage />} />
       <Route path="/admin-dashboard" element={<AdminDashboardPage />} />
