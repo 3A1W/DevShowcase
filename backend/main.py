@@ -8,7 +8,7 @@ import json
 from urllib.parse import quote
 
 from auth import get_current_user
-from config import FRONTEND_GITHUB_CALLBACK_URL, MONGODB_URI
+from config import FRONTEND_GITHUB_CALLBACK_URL, MONGODB_URI, FRONTEND_URL
 from models.usermodel import User
 from models.portfolio import Portfolio
 from models.github_connection import GitHubConnection
@@ -56,7 +56,7 @@ app = FastAPI(lifespan=lifespan)
 # CORS configuration to allow requests from the Vite frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "https://devshowcase-frontend-one.vercel.app/"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", FRONTEND_URL],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
